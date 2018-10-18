@@ -343,5 +343,11 @@ nk_plan9_handle_mouse(struct nk_context *ctx, Mouse m, Point p)
 	nk_input_button(ctx, NK_BUTTON_MIDDLE,	p.x, p.y, m.buttons & 2);
 	nk_input_button(ctx, NK_BUTTON_RIGHT,	p.x, p.y, m.buttons & 4);
 
+	if(m.buttons & 8)
+		nk_input_scroll(ctx, nk_vec2(0, 1.0f));
+
+	if(m.buttons & 16)
+		nk_input_scroll(ctx, nk_vec2(0, -1.0f));
+
 	return 1;
 }
