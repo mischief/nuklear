@@ -7,14 +7,44 @@
 #define NK_IMPLEMENTATION
 #include "nuklear.h"
 
+enum {
+	COLORGC	= 1000,
+};
+
 typedef struct Color Color;
 struct Color {
+	ulong gen;
 	ulong color;
 	Image *image;
 	Color *next;
 };
 
 static Color *ctab[257];
+static ulong cgen;
+
+static void
+colorgc(void)
+{
+	int i;
+	Color *c, *tmp, **cc;
+
+	if((cgen++ % COLORGC) != 0)
+		return;
+
+	for(i = 0; i < nelem(ctab); i++){
+		cc = &ctab[i];
+		while(*cc != nil){
+			if(cgen - (*cc)->gen > COLORGC){
+				c = *cc;
+				*cc = c->next;
+				freeimage(c->image);
+				free(c);
+			} else {
+				cc = &(*cc)->next;
+			}
+		}
+	}
+}
 
 static Image*
 colorget(struct nk_color nkcolor)
@@ -25,13 +55,16 @@ colorget(struct nk_color nkcolor)
 	color = nkcolor.r << 24 | nkcolor.g << 16 | nkcolor.b << 8 | nkcolor.a;
 
 	for(cc = &ctab[color % nelem(ctab)]; c = *cc, c != nil; cc = &c->next){
-		if(c->color == color)
+		if(c->color == color){
+			c->gen = cgen;
 			return c->image;
+		}
 	}
 
 	c = malloc(sizeof(Color));
 	if(c == nil)
 		display->error(display, "cannot allocate color memory");
+	c->gen = cgen;
 	c->color = color;
 	c->image = allocimage(display, Rect(0,0,1,1), screen->chan, 1, color);
 	if(c->image == nil)
@@ -229,6 +262,8 @@ nk_plan9_render(struct nk_context *ctx, Image *image)
 	}
 
 	nk_clear(ctx);
+
+	colorgc();
 }
 
 static Rune nkeymap[NK_KEY_MAX] = {
