@@ -106,16 +106,15 @@ nk_plan9_render(struct nk_context *ctx, Image *image)
 
 	p = image->r.min;
 
-    nk_foreach(cmd, ctx)
-    {
-        switch (cmd->type) {
-        case NK_COMMAND_NOP:
+	nk_foreach(cmd, ctx){
+		switch(cmd->type){
+		case NK_COMMAND_NOP:
 			break;
 
-        case NK_COMMAND_SCISSOR:
+		case NK_COMMAND_SCISSOR:
 			{
 				const struct nk_command_scissor *s = (const struct nk_command_scissor*)cmd;
-				//replclipr(image, 0, Rect(s->x, s->y, s->x+s->w, s->y+s->h));
+				replclipr(image, 0, rectaddpt(Rect(s->x, s->y, s->x+s->w, s->y+s->h), p));
         	}
 			break;
 
@@ -193,16 +192,6 @@ nk_plan9_render(struct nk_context *ctx, Image *image)
 			}
 			break;
 
-		/* apparently unused by nuklear, so abort if called */
-/*
-		case NK_COMMAND_POLYGON:
-			break;
-		case NK_COMMAND_POLYGON_FILLED:
-			break;
-		case NK_COMMAND_POLYLINE:
-			break;
-*/
-
 		case NK_COMMAND_TEXT:
 			{
 				const struct nk_command_text *t = (const struct nk_command_text*)cmd;
@@ -211,7 +200,8 @@ nk_plan9_render(struct nk_context *ctx, Image *image)
 				stringnbg(image, addpt(Pt(t->x, t->y), p), color, ZP, t->font->userdata.ptr,
 					t->string, t->length, color2, ZP);
 			}
-			break;	
+			break;
+
 		case NK_COMMAND_CURVE:
 			{
 				const struct nk_command_curve *q = (const struct nk_command_curve *)cmd;
@@ -239,15 +229,6 @@ nk_plan9_render(struct nk_context *ctx, Image *image)
 			}
 			break;
 
-		case NK_COMMAND_RECT_MULTI_COLOR:
-			{
-				static int once = 1;
-				if(once){
-					fprint(2, "NK_COMMAND_RECT_MULTI_COLOR not implemented\n");
-					once = 0;
-				}
-			}
-			break;
 		case NK_COMMAND_IMAGE:
 			{
 				const struct nk_command_image *i = (const struct nk_command_image*)cmd;
@@ -255,8 +236,28 @@ nk_plan9_render(struct nk_context *ctx, Image *image)
 				assert(imag != nil);
 				draw(image, rectaddpt(Rect(i->x, i->y, i->x+i->w, i->y+i->h), p), imag, nil, ZP);
 			}
+			break;
+
+		/* apparently unused by nuklear, so abort if called */
+#ifdef NOTYET
+		case NK_COMMAND_POLYGON:
+			break;
+		case NK_COMMAND_POLYGON_FILLED:
+			break;
+		case NK_COMMAND_POLYLINE:
+			break;
+		case NK_COMMAND_RECT_MULTI_COLOR:
+			break;
+#endif
+
 		default:
-			abort();
+			{
+				static int whined[NK_COMMAND_CUSTOM];
+				if(!whined[cmd->type]){
+					fprint(2, "unhandled render command %d\n", cmd->type);
+					whined[cmd->type] = 1;
+				}
+			}
 			break;
 		}
 	}
