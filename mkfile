@@ -26,4 +26,5 @@ uninstall:V:
 	rm -f /sys/include/nuklear.h
 
 sync:V:
+	rm -f upstream/nuklear.h
 	hget -o upstream/nuklear.h https://raw.githubusercontent.com/vurtun/nuklear/master/nuklear.h
