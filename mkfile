@@ -10,7 +10,7 @@ HFILES=nuklear.h
 nuklear.h:D:	nuklear_defines.h upstream/nuklear.h nuklear_plan9.h
 	@{
 		cat nuklear_defines.h
-		grep -v '^#include' upstream/nuklear.h
+		grep -v '^ *#include' upstream/nuklear.h
 		cat nuklear_plan9.h
 	} > $target
 
@@ -27,4 +27,4 @@ uninstall:V:
 
 sync:V:
 	rm -f upstream/nuklear.h
-	hget -o upstream/nuklear.h https://raw.githubusercontent.com/vurtun/nuklear/master/nuklear.h
+	hget -o upstream/nuklear.h https://raw.githubusercontent.com/Immediate-Mode-UI/Nuklear/master/nuklear.h
